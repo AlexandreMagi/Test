@@ -98,7 +98,7 @@ public class SwipeDetector : MonoBehaviour
 
     private void EndMovement()
     {
-        OnMovement(new SwipeData
+        OnSwipeEnd(new SwipeData
         {
             startPos = fingerDownPos,
             endPos = fingerUpPos,

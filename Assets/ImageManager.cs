@@ -7,16 +7,11 @@ public class ImageManager : MonoBehaviour
     [SerializeField]
     private List<Sprite> sprites;
     private GameManager gm;
-    public static ImageManager instance;
-
-    void Awake()
-    {
-        instance = this;
-    }
+    private string folder;
 
     void Start()
     {
-        gm = GameManager.instance;
+        gm = FindObjectOfType<GameManager>();
         LoadImages();
     }
 
@@ -24,9 +19,16 @@ public class ImageManager : MonoBehaviour
     {
         sprites = new List<Sprite>();
 
+        if (Application.platform == RuntimePlatform.Android)
+            folder = "Android";
+        else if (Application.platform == RuntimePlatform.IPhonePlayer)
+            folder = "Apple";
+        else
+            folder = "Android"; //On met android par défaut, au cas où
+
         for (int i = 1; i <= gm.arrayXSize * gm.arrayYSize; i++)
         {
-            Sprite img = Resources.Load<Sprite>($"Android/{i}");
+            Sprite img = Resources.Load<Sprite>($"{folder}/{i}");
             sprites.Add(img);
         }
     }

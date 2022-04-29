@@ -12,6 +12,7 @@ namespace TeasingGame
         Home,
         Game,
     }
+
 public class TeasingGameHomeSceneController : MonoBehaviour
 {
     public TeasingGameScene SceneForButton;
@@ -29,6 +30,7 @@ public class TeasingGameHomeSceneController : MonoBehaviour
 
    public void GoToGameScene()
     {
+            //STSSceneManager.UnloadSceneAsync(SceneForButton.ToString());
         STSSceneManager.LoadScene(SceneForButton.ToString());
     }
 }

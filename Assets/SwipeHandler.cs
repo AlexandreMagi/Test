@@ -4,25 +4,40 @@ using UnityEngine;
 
 public class SwipeHandler : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Awake()
-    {
-        SwipeDetector.OnMovement += LogMovement;
+    GameManager gm;
 
-        SwipeDetector.OnSwipeEnd += LogMovementEnd;
+    void OnEnable()
+    {
+        SwipeDetector.OnMovement += MovementEvent;
+
+        SwipeDetector.OnSwipeEnd += SwipeEvent;
     }
 
-    private void LogMovement(SwipeData data)
+    void OnDisable()
     {
-        Debug.Log(data.direction);
+        SwipeDetector.OnMovement -= MovementEvent;
+
+        SwipeDetector.OnSwipeEnd -= SwipeEvent;
+    }
+
+    void Start()
+    {
+        gm = FindObjectOfType<GameManager>();
+    }
+
+    private void MovementEvent(SwipeData data)
+    {
+        //Debug.Log(data.direction);
 
         //On notifie le GameManager qu'un mouvement a été fait
-        GameManager.instance.OnMovementDetected(data);
+        gm.OnMovementDetected(data);
     }
 
-    private void LogMovementEnd(SwipeData data)
+    private void SwipeEvent(SwipeData data)
     {
         Debug.Log("Movement ended" + data.direction);
+
+        gm.OnSwipeDetected(data);
     }
 
 
