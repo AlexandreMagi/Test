@@ -387,6 +387,7 @@ public class GameManager : MonoBehaviour
         {
             //Annulation
             MoveTile(data.direction, false);
+            UpdateTilesPositions();
         }
         StartCoroutine(MicroCDForMoves());
 
