@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour
     private int voidPosition;
 
     private Tile lockedTile;
+    private float percentThreshMove;
     private Vector2 initialLockPosition;
 
     private bool isGameGoing = false;
@@ -344,15 +345,15 @@ public class GameManager : MonoBehaviour
         }
 
         //On bouge la tile d'un pourcentage du threshhold, pour donner une impression de déplacement smooth
-        float thresholdPercentage =
+        float percentThreshMove =
             (data.direction == SwipeDirection.Left || data.direction == SwipeDirection.Right ? HorizontalMovementDistance(data) : VerticalMovementDistance(data)) / movementThreshhold;
 
-        if (thresholdPercentage < 0)
+        if (percentThreshMove < 0)
         {
-            if (data.direction == SwipeDirection.Left || data.direction == SwipeDirection.Down) thresholdPercentage = -thresholdPercentage;
-            else thresholdPercentage = 0;
+            if (data.direction == SwipeDirection.Left || data.direction == SwipeDirection.Down) percentThreshMove = -percentThreshMove;
+            else percentThreshMove = 0;
         }
-        if (thresholdPercentage > 1) thresholdPercentage = 1;
+        if (percentThreshMove > 1) percentThreshMove = 1;
 
 
         //On calcule la position finale pour mettre un smooth
@@ -360,29 +361,33 @@ public class GameManager : MonoBehaviour
         switch (data.direction)
         {
             case SwipeDirection.Up:
-                endPos = initialLockPosition + new Vector2(0, GetVerticalDistance() * thresholdPercentage);
+                endPos = initialLockPosition + new Vector2(0, GetVerticalDistance() * percentThreshMove);
                 break;
             case SwipeDirection.Down:
-                endPos = initialLockPosition - new Vector2(0, GetVerticalDistance() * thresholdPercentage);
+                endPos = initialLockPosition - new Vector2(0, GetVerticalDistance() * percentThreshMove);
                 break;
             case SwipeDirection.Left:
-                endPos = initialLockPosition - new Vector2(GetHorizontalDistance() * thresholdPercentage, 0);
+                endPos = initialLockPosition - new Vector2(GetHorizontalDistance() * percentThreshMove, 0);
                 break;
             case SwipeDirection.Right:
-                endPos = initialLockPosition + new Vector2(GetHorizontalDistance() * thresholdPercentage, 0);
+                endPos = initialLockPosition + new Vector2(GetHorizontalDistance() * percentThreshMove, 0);
                 break;
         }
 
         lockedTile.transform.position = new Vector2(
-            Mathf.Lerp(lockedTile.transform.position.x, endPos.x, 1 / smoothnessOnSwipe),
-            Mathf.Lerp(lockedTile.transform.position.y, endPos.y, 1 / smoothnessOnSwipe)
+            Mathf.Lerp(lockedTile.transform.position.x, endPos.x, smoothnessOnSwipe * Time.deltaTime),
+            Mathf.Lerp(lockedTile.transform.position.y, endPos.y, smoothnessOnSwipe * Time.deltaTime)
         );
 
     }
 
     public void OnSwipeDetected(SwipeData data)
     {
-        MoveTile(data.direction, false);
+        if (percentThreshMove > 0.1f)
+        {
+            //Annulation
+            MoveTile(data.direction, false);
+        }
         StartCoroutine(MicroCDForMoves());
 
         lockedTile = null;

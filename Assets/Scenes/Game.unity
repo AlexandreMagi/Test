@@ -940,8 +940,8 @@ MonoBehaviour:
   defeat: {fileID: 1017478053}
   button: {fileID: 1175955567}
   initialTime: 180
-  movementThreshhold: 1
-  smoothnessOnSwipe: 70
+  movementThreshhold: 280
+  smoothnessOnSwipe: 80
   numberOfMixes: 120
   arrayXSize: 3
   arrayYSize: 3
@@ -1301,8 +1301,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -250, y: -142}
-  m_SizeDelta: {x: 2000, y: 1000}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 5000, y: 3000}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1682781590
 MonoBehaviour:
