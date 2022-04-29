@@ -23,6 +23,7 @@ public class SwipeDetector : MonoBehaviour
 
     private void Update()
     {
+        /*
         //Unity Remote a décidé de pas marcher, donc on débug à la souris.
         if (Input.GetKeyDown(KeyCode.Mouse0))
         {
@@ -43,6 +44,7 @@ public class SwipeDetector : MonoBehaviour
 
             EndMovement();
         }
+        */
 
         //Version mobile
         foreach (Touch touch in Input.touches)

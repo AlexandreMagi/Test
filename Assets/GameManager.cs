@@ -6,6 +6,7 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     private List<Tile> tiles;
+    private List<Tile> ghostTiles;
 
     private int[] tilePositions;
     private int voidPosition;
@@ -14,6 +15,7 @@ public class GameManager : MonoBehaviour
     private Vector2 initialLockPosition;
 
     private bool isGameGoing = false;
+    private bool isMoveOnCooldown = false;
 
     private int moves = 0;
 
@@ -61,6 +63,7 @@ public class GameManager : MonoBehaviour
         tilePositions = new int[arrayXSize * arrayYSize];
 
         tiles = new List<Tile>();
+        ghostTiles = new List<Tile>();
         var center = arrayXSize * arrayYSize / 2;
 
         tilePositions[center] = -1; //On met la position centrale logique à -1
@@ -83,10 +86,24 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        //On crée les ghost tiles (l'image complète)
+        for (int i = 0; i < arrayYSize; i++)
+        {
+            for (int j = 0; j < arrayXSize; j++)
+            {
+                GameObject tile = Instantiate(tileObject);
+                Tile tileComp = tile.GetComponent<Tile>();
+                tileComp.number = j + i * arrayXSize;
+
+                ghostTiles.Add(tileComp);
+            }
+        }
+
         //On fait le mélange
-        for (int i = 0; i < numberOfMixes; i++) MoveTile((SwipeDirection)Random.Range(0, 4), false);
+        for (int i = 0; i < numberOfMixes; i++) MoveTile((SwipeDirection)Random.Range(0, 4), true);
 
         UpdateTilesPositions();
+        UpdateGhostTilesPositions();
 
         //On lance le timer
         timeLeft = initialTime;
@@ -140,7 +157,7 @@ public class GameManager : MonoBehaviour
     #endregion
 
 #region Logic
-    private void MoveTile(SwipeDirection direction, bool checkVictory)
+    private void MoveTile(SwipeDirection direction, bool isShuffle)
     {
         //On se fiche de quelle tile veut être bougée, il n'y a qu'une possibilité par direction de toute manière.
 
@@ -184,9 +201,11 @@ public class GameManager : MonoBehaviour
                 break;
         }
 
-        UpdateTilesPositions();
-        if (checkVictory)
+        
+        if (!isShuffle)
         {
+            UpdateTilesPositions();
+            UpdateGhostTilesPositions();
             moves++;
             UpdateMoves();
 
@@ -214,15 +233,15 @@ public class GameManager : MonoBehaviour
         return null;
     }
 
-    //Ces fonctions pourront être utiles plus tard si on veux faire des formes autres que des carrés
+    //Ces fonctions pourront être utiles plus tard si on veux faire des formes autres que des carrés. Le +.1f est pour faire un léger écart
     public float GetVerticalDistance()
     {
-        return tileSize;
+        return tileSize + .1f;
     }
 
     public float GetHorizontalDistance()
     {
-        return tileSize;
+        return tileSize + .1f;
     }
 
     private float HorizontalMovementDistance(SwipeData data)
@@ -249,6 +268,12 @@ public class GameManager : MonoBehaviour
         victory.SetActive(true);
         button.SetActive(true);
 
+        //On enregistre le score
+        if((!PlayerPrefs.HasKey("BestScore")) || PlayerPrefs.GetInt("BestScore") > moves)
+            PlayerPrefs.SetInt("BestScore", moves);
+        if ((!PlayerPrefs.HasKey("BestTime")) || PlayerPrefs.GetInt("BestTime") > initialTime - timeLeft)
+            PlayerPrefs.SetInt("BestTime", initialTime - timeLeft);
+
         StopAllCoroutines();
     }
 
@@ -259,16 +284,36 @@ public class GameManager : MonoBehaviour
     private void UpdateTilesPositions()
     {
         //Position initiale à gauche et en bas
-        var initialX = -(Mathf.Floor(arrayXSize / 2) * tileSize + arrayXSize % 2 == 0 ? tileSize / 2 : 0);
-        var initialY = -(Mathf.Floor(arrayYSize / 2) * tileSize + arrayYSize % 2 == 0 ? tileSize / 2 : 0);
+        var initialX = -(Mathf.Floor(arrayXSize / 2) * GetHorizontalDistance() + arrayXSize % 2 == 0 ? GetHorizontalDistance() / 2 : 0);
+        var initialY = -(Mathf.Floor(arrayYSize / 2) * GetVerticalDistance() + arrayYSize % 2 == 0 ? GetVerticalDistance() / 2 : 0);
 
         //Positionnement des tiles
-        for(int i=0;i<tilePositions.Length;i++)
+        for (int i=0;i<tilePositions.Length;i++)
         {
             //On ignore la case vide
             if (tilePositions[i] == -1) continue;
 
             Tile tile = tiles.Find(t => t.number == tilePositions[i]);
+
+            tile.transform.position = new Vector2(
+                initialX + GetHorizontalDistance() * (i % arrayXSize - 1),
+                initialY + GetVerticalDistance() * (arrayYSize - Mathf.Ceil(i / arrayYSize))
+            );
+        }
+    }
+
+    //Les ghost tile sont juste la formation de l'image normale et complète, on les décale en X exprès pour l'affichage
+    private void UpdateGhostTilesPositions()
+    {
+        //Position initiale à gauche et en bas
+        var initialX = -(Mathf.Floor(arrayXSize / 2) * tileSize + arrayXSize % 2 == 0 ? tileSize / 2 : 0) + 5f;
+        var initialY = -(Mathf.Floor(arrayYSize / 2) * tileSize + arrayYSize % 2 == 0 ? tileSize / 2 : 0);
+
+        //Positionnement des tiles
+        for (int i = 0; i < tilePositions.Length; i++)
+        {
+            Tile tile = ghostTiles.Find(t => t.number == tilePositions[i]);
+            if (tile == null) tile = ghostTiles.Find(t => t.number == arrayXSize * arrayYSize / 2); //Le void doit forcément être rempli ainsi
 
             tile.transform.position = new Vector2(
                 initialX + tileSize * (i % arrayXSize - 1),
@@ -337,7 +382,8 @@ public class GameManager : MonoBehaviour
 
     public void OnSwipeDetected(SwipeData data)
     {
-        MoveTile(data.direction, true);
+        MoveTile(data.direction, false);
+        StartCoroutine(MicroCDForMoves());
 
         lockedTile = null;
     }
@@ -365,5 +411,21 @@ public class GameManager : MonoBehaviour
         
     }
 
+    //Pour éviter des double-move sur mobile
+    private IEnumerator MicroCDForMoves()
+    {
+        isMoveOnCooldown = true;
+
+        yield return new WaitForSecondsRealtime(.2f);
+
+        isMoveOnCooldown = false;
+
+        yield return null;
+    }
+
 #endregion
+
+
 }
+
+
