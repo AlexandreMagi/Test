@@ -15,6 +15,9 @@ public class SwipeHandler : MonoBehaviour
     private void LogMovement(SwipeData data)
     {
         Debug.Log(data.direction);
+
+        //On notifie le GameManager qu'un mouvement a été fait
+        GameManager.instance.OnMovementDetected(data);
     }
 
     private void LogMovementEnd(SwipeData data)
