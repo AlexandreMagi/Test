@@ -1,8 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
-using SceneTransitionSystem;
+//using SceneTransitionSystem;
 
 
 namespace TeasingGame
@@ -12,6 +13,7 @@ namespace TeasingGame
         Home,
         Game,
     }
+
 public class TeasingGameHomeSceneController : MonoBehaviour
 {
     public TeasingGameScene SceneForButton;
@@ -29,7 +31,8 @@ public class TeasingGameHomeSceneController : MonoBehaviour
 
    public void GoToGameScene()
     {
-        STSSceneManager.LoadScene(SceneForButton.ToString());
+        //STSSceneManager.UnloadSceneAsync(SceneForButton.ToString());
+        SceneManager.LoadScene(SceneForButton.ToString());
     }
 }
 }
