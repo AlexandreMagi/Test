@@ -382,6 +382,8 @@ public class GameManager : MonoBehaviour
 
     public void OnSwipeDetected(SwipeData data)
     {
+        if (lockedTile == null) return;
+
         //Annulation
         if(Vector2.Distance(lockedTile.transform.position, initialLockPosition) < tileSize / 3)
         {
